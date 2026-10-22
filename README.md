@@ -20,8 +20,7 @@ npm run build
 - Dark editorial minimalism with Plus Jakarta Sans and Newsreader italic accents.
 - SVG browser favicon using the three-line `by / duc / anh` wordmark and lime accent dot.
 - Responsive navigation, theme toggle, scroll-based header scaling, section reveals, and reduced-motion support.
-- Web Audio API-generated interface sounds with a persisted SFX preference.
-- Optional YouTube music player controls for “Color Your Night”. Browsers may block autoplay; playback behavior depends on browser policy and the user's interaction. The embed starts muted to improve autoplay compatibility.
+- Optional YouTube music player controls for “Color Your Night”. Playback starts only after the user presses play and depends on browser policy.
 - Contact information with copy buttons and verified GitHub/Facebook links from the CV.
 - No portrait photography or invented work history, metrics, certifications, or skill levels.
 
