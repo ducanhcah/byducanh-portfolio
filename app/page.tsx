@@ -9,13 +9,24 @@ const youtubeOrigin = "https://www.youtube-nocookie.com";
 const heroNameLines = ["Xin chào!", "tôi là,", "Nguyễn Đức Anh"];
 const heroNameLength = heroNameLines.reduce((length, line) => length + line.length, 0);
 
-function sendMusicCommand(iframe: HTMLIFrameElement | null, command: "unMute" | "playVideo" | "pauseVideo") {
+function sendMusicCommand(iframe: HTMLIFrameElement | null, command: "unMute" | "playVideo" | "pauseVideo", ready = false) {
+  if (!ready) return;
   iframe?.contentWindow?.postMessage(JSON.stringify({ event: "command", func: command, args: [] }), youtubeOrigin);
 }
 
 function MusicWidget({ isHeroActive }: { isHeroActive: boolean }) {
   const [musicOn, setMusicOn] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const playerReady = useRef(false);
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia("(max-width: 760px)");
+    const updateMobileState = () => setIsMobile(mobileQuery.matches);
+    updateMobileState();
+    mobileQuery.addEventListener("change", updateMobileState);
+    return () => mobileQuery.removeEventListener("change", updateMobileState);
+  }, []);
 
   useEffect(() => {
     try {
@@ -24,11 +35,15 @@ function MusicWidget({ isHeroActive }: { isHeroActive: boolean }) {
     } catch { /* Storage can be unavailable. */ }
   }, []);
 
+  useEffect(() => {
+    if (isMobile) sendMusicCommand(iframeRef.current, "pauseVideo", playerReady.current);
+  }, [isMobile]);
+
   function toggleMusic() {
     const next = !musicOn; setMusicOn(next);
     try { localStorage.setItem("bda-music", next ? "on" : "off"); } catch { /* ignore */ }
-    if (next) sendMusicCommand(iframeRef.current, "unMute");
-    sendMusicCommand(iframeRef.current, next ? "playVideo" : "pauseVideo");
+    if (next) sendMusicCommand(iframeRef.current, "unMute", playerReady.current);
+    sendMusicCommand(iframeRef.current, next ? "playVideo" : "pauseVideo", playerReady.current);
   }
   const playButton = (
     <button className="music-toggle" onClick={toggleMusic} aria-label={musicOn ? "Tạm dừng nhạc" : "Phát nhạc"} aria-pressed={musicOn}>
@@ -38,11 +53,14 @@ function MusicWidget({ isHeroActive }: { isHeroActive: boolean }) {
 
   return <>
     <iframe ref={iframeRef} className="music-frame" title="Color Your Night music player" src="https://www.youtube-nocookie.com/embed/j9Sn1nFGQQ8?enablejsapi=1&autoplay=0&controls=0&loop=1&playlist=j9Sn1nFGQQ8&playsinline=1&mute=0" allow="autoplay; encrypted-media" tabIndex={-1} onLoad={() => {
-      if (musicOn) {
-        sendMusicCommand(iframeRef.current, "unMute");
-        sendMusicCommand(iframeRef.current, "playVideo");
+      playerReady.current = true;
+      if (window.matchMedia("(max-width: 760px)").matches) {
+        sendMusicCommand(iframeRef.current, "pauseVideo", true);
+      } else if (musicOn) {
+        sendMusicCommand(iframeRef.current, "unMute", true);
+        sendMusicCommand(iframeRef.current, "playVideo", true);
       } else {
-        sendMusicCommand(iframeRef.current, "pauseVideo");
+        sendMusicCommand(iframeRef.current, "pauseVideo", true);
       }
     }} />
     <aside className={`music-widget${isHeroActive ? " music-widget--hero" : ""}`} aria-label="Trình phát nhạc">
@@ -57,7 +75,6 @@ function MusicWidget({ isHeroActive }: { isHeroActive: boolean }) {
         {playButton}
       </div>
     </aside>
-    <div className="music-mobile-control">{playButton}</div>
   </>;
 }
 
