@@ -30,6 +30,12 @@ function MusicWidget({ isHeroActive }: { isHeroActive: boolean }) {
     if (next) sendMusicCommand(iframeRef.current, "unMute");
     sendMusicCommand(iframeRef.current, next ? "playVideo" : "pauseVideo");
   }
+  const playButton = (
+    <button className="music-toggle" onClick={toggleMusic} aria-label={musicOn ? "Tạm dừng nhạc" : "Phát nhạc"} aria-pressed={musicOn}>
+      {musicOn ? <Pause size={15}/> : <Play size={15}/>}
+    </button>
+  );
+
   return <>
     <iframe ref={iframeRef} className="music-frame" title="Color Your Night music player" src="https://www.youtube-nocookie.com/embed/j9Sn1nFGQQ8?enablejsapi=1&autoplay=0&controls=0&loop=1&playlist=j9Sn1nFGQQ8&playsinline=1&mute=0" allow="autoplay; encrypted-media" tabIndex={-1} onLoad={() => {
       if (musicOn) {
@@ -48,9 +54,10 @@ function MusicWidget({ isHeroActive }: { isHeroActive: boolean }) {
       </div>
       <div className="music-controls">
         <span className={musicOn ? "equalizer playing" : "equalizer"} aria-label={musicOn ? "Đang phát" : "Đã tạm dừng"}><i/><i/><i/><i/></span>
-        <button className="music-toggle" onClick={toggleMusic} aria-label={musicOn ? "Tạm dừng nhạc" : "Phát nhạc"} aria-pressed={musicOn}>{musicOn ? <Pause size={15}/> : <Play size={15}/>}</button>
+        {playButton}
       </div>
     </aside>
+    <div className="music-mobile-control">{playButton}</div>
   </>;
 }
 
